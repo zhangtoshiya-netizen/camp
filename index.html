@@ -110,7 +110,6 @@ button,select,input{font:inherit;color:inherit}
 .foot{font-size:12.5px;color:var(--muted);text-align:center;text-wrap:balance}
 .readonly .item select,.readonly .item input{pointer-events:none;opacity:.7}
 </style>
-      '<style id="css">'+css+'</style></head><body>\n<div id="app"></div>\n'+
 </head>
 <body>
 <style>
@@ -121,6 +120,7 @@ button,select,input{font:inherit;color:inherit}
 .item{grid-template-columns:1fr auto auto}
 @media (max-width:480px){.item{grid-template-columns:1fr auto}.item .qty{grid-column:1;grid-row:2;padding-left:30px;margin-top:-6px}.item .tag{grid-column:2;grid-row:1 / span 2}}
 .who-q{font-size:13px;color:var(--muted)}
+.tags{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
 .group-note{font-weight:400;font-size:12.5px;color:var(--muted);margin-left:6px}
 </style>
 
@@ -132,7 +132,7 @@ button,select,input{font:inherit;color:inherit}
   var EVERY='每人自带';
   var GROUPS=[
     ['住与遮雨',[['a1','帐篷 / 天幕（确认营地是否提供）','1套','Sophia'],['a2','地布、防潮垫、营钉锤','1套','Sophia'],['a3','折叠桌 + 4把椅子','1套','Candice'],['a4','露营灯 / 头灯（含备用电池）','2–3盏','Candice'],['a5','雨衣 / 雨伞 / 天幕侧布','4份','Candice']]],
-    ['吃喝与烹饪',[['b1','饮用水（按 3L/人）','12L','Sophia'],['b5','炉具 + 气罐（确认可用）','1套','Candice'],['b7','冰袋 / 保温箱','1个','Sophia'],['b2','面包（早餐 / 加餐）','4–8份','白雪'],['b3','咖啡（挂耳 / 冷萃 / 速溶）','4–8杯','小咭'],['b4','食材、零食、水果','1批','小咭'],['b6','锅具、餐具、纸巾、保鲜袋','1套','白雪'],['b8','垃圾袋（干湿分开）','6个','白雪']]],
+    ['吃喝与烹饪',[['b1','饮用水（按 3L/人）','12L','Sophia'],['b5','炉具 + 气罐（确认可用）','1套','Candice'],['b7','冰袋 / 保温箱','1个','Sophia'],['b2','面包（早餐 / 加餐）','4–8份','小咭'],['b3','咖啡（挂耳 / 冷萃 / 速溶）','4–8杯','小咭'],['b4','食材、水果','1批','小咭'],['b9','零食','1批',['小咭','白雪']],['b6','锅具、餐具、纸巾、保鲜袋','1套','白雪'],['b8','垃圾袋（干湿分开）','6个','白雪']]],
     ['安全与娱乐',[['d1','急救包、创可贴、消毒湿巾','1套','小咭'],['d2','常用药、过敏药','按需','小咭'],['d3','充电宝、充电线、插排','1套','小咭'],['d4','蓝牙音箱（注意音量）','1个','白雪'],['d5','飞盘 / 扑克 / 桌游','1–2样','白雪'],['d6','相机 / 三脚架','按需','小咭']]],
     ['衣物与个人',[['c1','速干衣、备用衣裤','1份',EVERY],['c2','防水鞋 / 拖鞋、备用袜','1份',EVERY],['c3','防晒霜、帽子、驱蚊液','1份',EVERY],['c4','身份证、现金、充电宝','1份',EVERY],['c5','洗漱用品、湿巾','1份',EVERY]]]
   ];
@@ -142,8 +142,9 @@ button,select,input{font:inherit;color:inherit}
   var checks=get(KEY,{}), who=get(WHO,''), copyText='';
   var app=document.getElementById('app');
   function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
-  function mine(o){return !who||o===who||o===EVERY}
-  function tag(o){var i=PEOPLE.indexOf(o);return '<span class="tag'+(i>=0?' p'+i:'')+'">'+esc(o)+'</span>'}
+  function owns(o,p){return Array.isArray(o)?o.indexOf(p)>=0:o===p}
+  function mine(o){return !who||owns(o,who)||o===EVERY}
+  function tag(o){if(Array.isArray(o))return '<span class="tags">'+o.map(tag).join('')+'</span>';var i=PEOPLE.indexOf(o);return '<span class="tag'+(i>=0?' p'+i:'')+'">'+esc(o)+'</span>'}
 
   function render(){
     var list=[];GROUPS.forEach(function(g){g[1].forEach(function(it){if(mine(it[3]))list.push(it)})});
@@ -160,7 +161,7 @@ button,select,input{font:inherit;color:inherit}
       '<div class="bar"><span style="width:'+(list.length?100*done/list.length:0)+'%"></span></div>'+
       '<div class="filters" role="group" aria-label="我是谁">'+
       '<button type="button" data-who="" aria-pressed="'+(!who)+'">全部</button>'+
-      PEOPLE.map(function(p){var n=0;GROUPS.forEach(function(g){g[1].forEach(function(it){if(it[3]===p)n++})});return '<button type="button" data-who="'+esc(p)+'" aria-pressed="'+(who===p)+'">'+esc(p)+'<b>'+n+'</b></button>'}).join('')+
+      PEOPLE.map(function(p){var n=0;GROUPS.forEach(function(g){g[1].forEach(function(it){if(owns(it[3],p))n++})});return '<button type="button" data-who="'+esc(p)+'" aria-pressed="'+(who===p)+'">'+esc(p)+'<b>'+n+'</b></button>'}).join('')+
       '</div></section>';
 
     GROUPS.forEach(function(g){
@@ -201,7 +202,7 @@ button,select,input{font:inherit;color:inherit}
     if(b.getAttribute('data-act')==='clear'){GROUPS.forEach(function(g){g[1].forEach(function(it){if(mine(it[3]))delete checks[it[0]]})});set(KEY,checks);render()}
     if(b.getAttribute('data-act')==='copy'){
       var out='【一月一露 · 四人露营分工】9月25日（周五）\n地址：松江区西茹路1号（涌禾农场内）\n清单：'+location.href.split('#')[0]+'\n';
-      PEOPLE.concat([EVERY]).forEach(function(p){var l=[];GROUPS.forEach(function(g){g[1].forEach(function(it){if(it[3]===p)l.push(it[1]+'（'+it[2]+'）')})});out+='\n'+p+'：\n- '+l.join('\n- ')+'\n'});
+      PEOPLE.concat([EVERY]).forEach(function(p){var l=[];GROUPS.forEach(function(g){g[1].forEach(function(it){if(owns(it[3],p))l.push(it[1]+'（'+it[2]+'）'+(Array.isArray(it[3])?'，和'+it[3].filter(function(x){return x!==p}).join('、')+'一起':''))})});out+='\n'+p+'：\n- '+l.join('\n- ')+'\n'});
       var ok=function(){copyText='';b.textContent='已复制，发到群里吧';setTimeout(render,1600)};
       var fail=function(){copyText=out;render()};
       try{navigator.clipboard.writeText(out).then(ok,fail)}catch(err){fail()}
